@@ -9,3 +9,4 @@ module.exports = router
 router.post('/register', userController.registerUser)
 router.post('/login', userController.loginUser)
 router.get('/user/:userId/profile', auth.userAuth, userController.getUser)
+router.put('/user/:userId/profile', auth.userAuth, userController.updateUser)

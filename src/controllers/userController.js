@@ -155,4 +155,69 @@ const getUser = async function(req, res) {
     }
 }
 
-module.exports = { registerUser, loginUser, getUser }
+// Feature 1 - API 4 - Update User Profile
+
+const updateUser = async function(req, res) {
+
+    try {
+        const userId = req.params.userId;
+        const requestBody = req.body;
+        const decodedId = req.userId;
+
+        if (userId == decodedId) {
+            if (!isValidRequestBody(requestBody)) {
+                return res.status(200).send({ Message: "No data updated, details are unchanged" })
+            }
+            //Extract Params
+            let { fname, lname, email, phone } = requestBody
+
+            const userFind = await userModel.findById(userId)
+
+            if (fname) {
+                if (!isValid(fname)) {
+                    res.status(400).send({ status: false, Message: "Provide a valid fname" })
+                }
+                userFind['fname'] = fname
+            }
+
+
+            if (lname) {
+                if (!isValid(lname)) {
+                    res.status(400).send({ status: false, Message: "Provide a valid fname" })
+                }
+                userFind['lname'] = lname
+            }
+
+            if (email) {
+                if (!(emailRegex).test(email)) {
+                    return res.status(400).send({ status: false, message: " Provide a valid email address" })
+                }
+                const isEmailAlreadyUsed = await userModel.findOne({ email: email });
+                if (isEmailAlreadyUsed) {
+                    return res.status(400).send({ status: false, message: `${email} email address is already registered` })
+                }
+                userFind['email'] = email
+            }
+
+            if (phone) {
+                if (!(phoneRegex).test(phone)) {
+                    return res.status(400).send({ status: false, message: " Provide a valid phone number" })
+                }
+                const isPhoneAlreadyUsed = await userModel.findOne({ phone: phone });
+                if (isPhoneAlreadyUsed) {
+                    return res.status(400).send({ status: false, message: `${phone} is already registered` })
+                }
+                userFind['phone'] = phone
+            }
+            const updatedData = await userFind.save()
+            return res.status(200).send({ status: true, Message: "Data Updated Successfully", data: updatedData })
+        } else {
+            res.status(401).send({ status: false, Message: "You are not authorzied to update this user profile" })
+        }
+
+    } catch (error) {
+        return res.status(500).send({ status: false, message: error.message });
+    }
+}
+
+module.exports = { registerUser, loginUser, getUser, updateUser }
