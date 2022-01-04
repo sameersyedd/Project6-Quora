@@ -54,18 +54,17 @@ const registerUser = async function(req, res) {
             return res.status(400).send({ status: false, Message: "Please provide valid email" })
         }
 
-        let Phone = phone.split(' ').join('')
-        if (Phone) {
-            if (!((phoneRegex).test(Phone))) {
+        if (phone) {
+            if (!((phoneRegex).test(phone.split(" ").join("")))) {
                 return res.status(400).send({ status: false, Message: "Please provide valid phone number" })
             }
-
-            const isPhoneAlreadyUsed = await userModel.findOne({ phone: Phone });
+            const isPhoneAlreadyUsed = await userModel.findOne({ phone });
             if (isPhoneAlreadyUsed) {
-                res.status(400).send({ status: false, message: `${Phone}  phone is already registered` })
+                res.status(400).send({ status: false, message: `${phone}  phone is already registered` })
                 return
             }
         }
+
 
 
         if (!isValid(password)) {
@@ -77,12 +76,35 @@ const registerUser = async function(req, res) {
         }
 
         const encryptedPass = await bcrypt.hash(password, 10)
-        const userData = { fname, lname, email: Email, phone: Phone, password: encryptedPass }
+        const userData = { fname, lname, email: Email, phone, password: encryptedPass }
         const createUser = await userModel.create(userData)
         return res.status(201).send({ status: true, Message: "User registered successfully", data: createUser })
     } catch (error) {
         return res.status(500).send({ status: false, Message: error.message })
     }
 }
+
+// const loginUser = async function(req, res) {
+//     try {
+//         const requestBody = req.body
+//         if (!isValidRequestBody(requestBody)) {
+//             return res.status(400).send({ status: false, Message: "Please provide login credentials" })
+//         }
+
+//         //Extract prams
+//         let { email, password } = requestBody
+
+//         if (!isValid(email)) {
+//             return res.status(400).send({ status: false, Message: "Please provide email" })
+//         }
+
+//         if (!isValid(password)) {
+//             return res.status(400).send({ status: false, Message: "Please provide email" })
+//         }
+
+//     } catch (error) {
+
+//     }
+// }
 
 module.exports = { registerUser }
