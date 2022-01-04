@@ -23,7 +23,7 @@ const isValidObjectId = function(objectId) {
     return mongoose.Types.ObjectId.isValid(objectId)
 }
 
-
+//Feature 1- API 1 Register User
 const registerUser = async function(req, res) {
 
     try {
@@ -84,27 +84,75 @@ const registerUser = async function(req, res) {
     }
 }
 
-// const loginUser = async function(req, res) {
-//     try {
-//         const requestBody = req.body
-//         if (!isValidRequestBody(requestBody)) {
-//             return res.status(400).send({ status: false, Message: "Please provide login credentials" })
-//         }
+//Feature 1- API 2- lOGIN USER
+const loginUser = async function(req, res) {
+    try {
+        const requestBody = req.body;
 
-//         //Extract prams
-//         let { email, password } = requestBody
+        if (!isValidRequestBody(requestBody)) {
+            res.status(400).send({ status: false, Message: "Please provide login credentials" })
+        }
 
-//         if (!isValid(email)) {
-//             return res.status(400).send({ status: false, Message: "Please provide email" })
-//         }
+        // // Extract params
+        const { email, password } = requestBody;
 
-//         if (!isValid(password)) {
-//             return res.status(400).send({ status: false, Message: "Please provide email" })
-//         }
+        if (!isValid(email)) {
+            res.status(400).send({ status: false, message: `Email is required` })
+            return
+        }
 
-//     } catch (error) {
+        if (!((emailRegex).test(email))) {
+            res.status(400).send({ status: false, message: `Email should be a valid email address` })
+            return
+        }
 
-//     }
-// }
+        if (!isValid(password)) {
+            res.status(400).send({ status: false, message: `Password is required` })
+            return
+        }
 
-module.exports = { registerUser }
+        const user = await userModel.findOne({ email });
+        if (!user) {
+            res.status(404).send({ status: false, Message: `No user found with ${email}` })
+        }
+
+        const matchPassword = await bcrypt.compareSync(password, user.password) //matching original and encrypted
+
+        if (!matchPassword) {
+            return res.status(401).send({ status: false, message: 'Password Incorrect' })
+        }
+
+        const token = await jwt.sign({
+            userId: user._id,
+            iat: Math.floor(Date.now() / 1000),
+            exp: Math.floor(Date.now() / 1000) + 60 * 60 * 12
+        }, 'sms')
+
+        res.status(200).send({ status: true, message: `user login successfull`, data: { token, userId: user._id } });
+    } catch (error) {
+        res.status(500).send({ status: false, message: error.message });
+    }
+}
+
+//fEATURE 3- API 3 - Get user details
+
+const getUser = async function(req, res) {
+    try {
+        const userId = req.params.userId
+        const tokenId = req.userId
+
+        if (!isValidObjectId(userId)) {
+            res.status(400).send({ status: false, Message: "Please provide valid user id" })
+        }
+        if (userId == tokenId) {
+            const user = await userModel.findOne({ _id: userId })
+            return res.status(200).send({ status: true, Message: "Details fetch successfully", data: user })
+        } else {
+            return res.status(401).send({ status: false, Message: "You are not authorized to fetch details of this user!!!" })
+        }
+    } catch (error) {
+        return res.status(500).send({ status: false, message: error.message });
+    }
+}
+
+module.exports = { registerUser, loginUser, getUser }
