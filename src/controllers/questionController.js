@@ -1,8 +1,6 @@
 const mongoose = require('mongoose')
 const questionModel = require('../models/questionModel.js')
 const answerModel = require('../models/answerModel.js')
-const userModel = require('../models/userModel.js')
-const { findOneAndUpdate } = require('../models/userModel.js')
 
 const isValidRequestBody = function(requestBody) {
     return Object.keys(requestBody).length > 0
@@ -48,7 +46,7 @@ const createQuestion = async function(req, res) {
             requestBody.tag = tag.split(',').map((x) => x.trim())
 
             let question = await questionModel.create(requestBody)
-            return res.status(200).send({ status: false, Message: "Question created successfully", data: question })
+            return res.status(201).send({ status: false, Message: "Question created successfully", data: question })
         } else {
             return res.status(401).send({ status: false, Message: "Unauthorized access attemped! can't post question using this ID" })
         }
@@ -88,12 +86,23 @@ const getAllQuestion = async function(req, res) {
             var data = await questionModel.find(filter);
         }
 
+        const arr = []
+
         for (let i = 0; i < data.length; i++) {
-            var answer = await answerModel.find({ questionId: data[i]._id })
-            data[i].answers = answer
+            arr.push(data[i].toObject())
         }
 
-        return res.status(200).send({ status: true, Message: "Question List", data: data })
+        const answer = await answerModel.find()
+
+        for (question of arr) {
+            for (ans of answer) {
+                if ((question._id).toString() == ans.questionId.toString()) {
+                    question.answers = ans
+                }
+            }
+        }
+
+        return res.status(200).send({ status: true, Message: "Question List", data: arr })
 
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message });
@@ -197,15 +206,15 @@ const deleteQues = async function(req, res) {
         if (!(question)) {
             return res.status(404).send({ status: false, msg: "No question found with this Id" })
         }
-        console.log(question.askedBy.toString())
+        // console.log(question.askedBy.toString())
         if (!(tokenId == question.askedBy.toString())) {
             return res.status(401).send({ status: false, msg: "You are  not authorized to update this question" })
         }
         const deletedData = await questionModel.findOneAndUpdate({ _id: qId }, { isDeleted: true, deletedAt: new Date() }, { new: true })
-        res.status(200).send({ status: true, msg: "Question Deleted", data: deletedData })
+        return res.status(200).send({ status: true, msg: "Question Deleted", data: deletedData })
 
     } catch (error) {
-        res.status(500).send({ status: false, msg: error.message })
+        return res.status(500).send({ status: false, msg: error.message })
     }
 }
 

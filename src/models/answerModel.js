@@ -17,6 +17,11 @@ const answerSchema = new mongoose.Schema({
         required: true
     },
 
+    isDeleted: {
+        type: Boolean,
+        default: false
+    }
+
 }, { timestamps: true })
 
 module.exports = mongoose.model('Answer', answerSchema)
