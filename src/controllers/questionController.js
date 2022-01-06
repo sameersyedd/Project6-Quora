@@ -45,7 +45,7 @@ const createQuestion = async function(req, res) {
                 return res.status(400).send({ status: false, Message: "Please provide description" })
             }
 
-            requestBody.tag = tag.split(',')
+            requestBody.tag = tag.split(',').map((x) => x.trim())
 
             let question = await questionModel.create(requestBody)
             return res.status(200).send({ status: false, Message: "Question created successfully", data: question })
@@ -144,18 +144,18 @@ const getQuestionById = async function(req, res) {
 
 const updateQues = async function(req, res) {
     try {
-        const aId = req.params.questionId
+        const qId = req.params.questionId
         const requestBody = req.body;
         const tokenId = req.userId
             // console.log(tokenId)
             // console.log(aId)
-        if (!isValidObjectId(aId)) {
+        if (!isValidObjectId(qId)) {
             return res.status(400).send({ status: false, Message: "Please provide valid question id" })
         }
         if (!isValidRequestBody(requestBody)) {
             return res.status(200).send({ Message: "No data updated,details are unchanged" })
         }
-        const question = await questionModel.findOne({ _id: aId, isDeleted: false })
+        const question = await questionModel.findOne({ _id: qId, isDeleted: false })
         if (!(question)) {
             return res.status(404).send({ status: false, msg: "No question found with this Id" })
         }
@@ -169,7 +169,7 @@ const updateQues = async function(req, res) {
             question['description'] = description
         }
         if (tag) {
-            tag = tag.split(',')
+            tag = tag.split(',').map((x) => x.trim())
             if (Array.isArray(tag)) {
                 question['tag'] = [...tag]
             }
@@ -184,5 +184,30 @@ const updateQues = async function(req, res) {
     }
 }
 
+//Feature 2 - API 5 - Delete Question
 
-module.exports = { createQuestion, getAllQuestion, getQuestionById, updateQues }
+const deleteQues = async function(req, res) {
+    try {
+        const qId = req.params.questionId
+        const tokenId = req.userId
+        if (!isValidObjectId(qId)) {
+            return res.status(400).send({ status: false, Message: "Please provide valid question id" })
+        }
+        const question = await questionModel.findOne({ _id: qId, isDeleted: false })
+        if (!(question)) {
+            return res.status(404).send({ status: false, msg: "No question found with this Id" })
+        }
+        console.log(question.askedBy.toString())
+        if (!(tokenId == question.askedBy.toString())) {
+            return res.status(401).send({ status: false, msg: "You are  not authorized to update this question" })
+        }
+        const deletedData = await questionModel.findOneAndUpdate({ _id: qId }, { isDeleted: true, deletedAt: new Date() }, { new: true })
+        res.status(200).send({ status: true, msg: "Question Deleted", data: deletedData })
+
+    } catch (error) {
+        res.status(500).send({ status: false, msg: error.message })
+    }
+}
+
+
+module.exports = { createQuestion, getAllQuestion, getQuestionById, updateQues, deleteQues }

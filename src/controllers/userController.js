@@ -180,7 +180,6 @@ const updateUser = async function(req, res) {
                 userFind['fname'] = fname
             }
 
-
             if (lname) {
                 if (!isValid(lname)) {
                     res.status(400).send({ status: false, Message: "Provide a valid fname" })
