@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const questionModel = require('../models/questionModel.js')
 const answerModel = require('../models/answerModel.js')
 const userModel = require('../models/userModel.js')
+const { findOneAndUpdate } = require('../models/userModel.js')
 
 const isValidRequestBody = function(requestBody) {
     return Object.keys(requestBody).length > 0
@@ -87,6 +88,11 @@ const getAllQuestion = async function(req, res) {
             var data = await questionModel.find(filter);
         }
 
+        for (let i = 0; i < data.length; i++) {
+            var answer = await answerModel.find({ questionId: data[i]._id })
+            data[i].answers = answer
+        }
+
         return res.status(200).send({ status: true, Message: "Question List", data: data })
 
     } catch (error) {
@@ -98,18 +104,18 @@ const getAllQuestion = async function(req, res) {
 
 const getQuestionById = async function(req, res) {
     try {
-        const qId = req.params.questionId
 
+
+        const qId = req.params.questionId
         if (!isValidObjectId(qId)) {
-            return res.status(400).send({ status: false, Message: "Please provide vaild askedBy ID" })
+            return res.status(400).send({ status: false, Message: "Please provide vaild question ID" })
         }
 
-        const question = await questionModel.findOne({ _id: qId })
+        const question = await questionModel.findOne({ _id: qId, isDeleted: false })
 
         if (!question) {
             res.status(404).send({ status: false, Message: "No question found with provided ID" })
         }
-
         const answer = await answerModel.find({ questionId: qId, isDeleted: false })
 
         if (answer.length === 0) {
@@ -129,14 +135,54 @@ const getQuestionById = async function(req, res) {
             answers: answer
         }
         return res.status(200).send({ status: true, data: ansArr })
-
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message });
     }
 }
 
-//Feature 2 - API 4 -
+//Feature 2 - API 4 - update question
+
+const updateQues = async function(req, res) {
+    try {
+        const aId = req.params.questionId
+        const requestBody = req.body;
+        const tokenId = req.userId
+            // console.log(tokenId)
+            // console.log(aId)
+        if (!isValidObjectId(aId)) {
+            return res.status(400).send({ status: false, Message: "Please provide valid question id" })
+        }
+        if (!isValidRequestBody(requestBody)) {
+            return res.status(200).send({ Message: "No data updated,details are unchanged" })
+        }
+        const question = await questionModel.findOne({ _id: aId, isDeleted: false })
+        if (!(question)) {
+            return res.status(404).send({ status: false, msg: "No question found with this Id" })
+        }
+        //  console.log(question.askedBy.toString())
+        if (!(tokenId == question.askedBy.toString())) {
+            return res.status(401).send({ status: false, msg: "You are  not authorized to update this question" })
+        }
+        let { description, tag } = requestBody
+        // console.log(questionFind)
+        if (description) {
+            question['description'] = description
+        }
+        if (tag) {
+            tag = tag.split(',')
+            if (Array.isArray(tag)) {
+                question['tag'] = [...tag]
+            }
+            if (Object.prototype.toString.call(tag) === "[object String]") {
+                question['tag'] = [tag]
+            }
+        }
+        const updatedData = await question.save()
+        return res.status(200).send({ status: true, Message: "Data saved Sucessfully", data: updatedData })
+    } catch (error) {
+        return res.status(500).send({ status: false, message: error.message });
+    }
+}
 
 
-
-module.exports = { createQuestion, getAllQuestion, getQuestionById }
+module.exports = { createQuestion, getAllQuestion, getQuestionById, updateQues }
