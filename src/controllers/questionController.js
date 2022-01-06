@@ -75,34 +75,23 @@ const getAllQuestion = async function(req, res) {
 
         if (isValid(sort)) {
             if (sort == "ascending") {
-                var data = await questionModel.find(filter).sort({ createdAt: 1 })
+                var data = await questionModel.find(filter).lean().sort({ createdAt: 1 })
             }
             if (sort == "descending") {
-                var data = await questionModel.find(filter).sort({ createdAt: -1 });
+                var data = await questionModel.find(filter).lean().sort({ createdAt: -1 });
             }
         }
 
         if (!sort) {
-            var data = await questionModel.find(filter);
+            var data = await questionModel.find(filter).lean();
         }
-
-        const arr = []
 
         for (let i = 0; i < data.length; i++) {
-            arr.push(data[i].toObject())
+            let answer = await answerModel.find({ questionId: data[i]._id })
+            data[i].answers = answer
         }
 
-        const answer = await answerModel.find()
-
-        for (question of arr) {
-            for (ans of answer) {
-                if ((question._id).toString() == ans.questionId.toString()) {
-                    question.answers = ans
-                }
-            }
-        }
-
-        return res.status(200).send({ status: true, Message: "Question List", data: arr })
+        return res.status(200).send({ status: true, Message: "Question List", data: data })
 
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message });
