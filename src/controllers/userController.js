@@ -33,7 +33,7 @@ const registerUser = async function(req, res) {
             return res.status(400).send({ status: false, Message: "Invalid request params, please provide user details in body" })
         }
         // extract prams
-        let { fname, lname, email, phone, password } = requestBody
+        let { fname, lname, email, phone, password, creditScore } = requestBody
 
         if (!isValid(fname)) {
             return res.status(400).send({ status: false, Message: "Please provide first name" })
@@ -65,8 +65,6 @@ const registerUser = async function(req, res) {
             }
         }
 
-
-
         if (!isValid(password)) {
             return res.status(400).send({ status: false, Message: "Please provide password" })
         }
@@ -75,8 +73,18 @@ const registerUser = async function(req, res) {
             return res.status(400).send({ status: false, Message: "Length of password should be 8-15 char." })
         }
 
+        if (!isValid(creditScore)) {
+            return res.status(400).send({ status: false, message: "Please provide CreditScore" });;
+        }
+        if (isNaN(creditScore)) {
+            return res.status(400).send({ status: false, message: "You can't use special characters or alphabets in CreditScore" });
+        }
+        if (creditScore < 0) {
+            return res.status(400).send({ status: false, message: "You can't give negative values in CreditScore" });
+        }
+
         const encryptedPass = await bcrypt.hash(password, 10)
-        const userData = { fname, lname, email: Email, phone, password: encryptedPass }
+        const userData = { fname, lname, email: Email, phone, password: encryptedPass, creditScore }
         const createUser = await userModel.create(userData)
         return res.status(201).send({ status: true, Message: "User registered successfully", data: createUser })
     } catch (error) {

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const questionModel = require('../models/questionModel.js')
 const answerModel = require('../models/answerModel.js')
+const userModel = require('../models/userModel')
 
 const isValidRequestBody = function(requestBody) {
     return Object.keys(requestBody).length > 0
@@ -18,55 +19,56 @@ const isValidObjectId = function(objectId) {
 
 //feature 3 - API 1 - create answer
 
-const createAns = async function(req, res) {
+const createAnswer = async function(req, res) {
     try {
-        const requestBody = req.body
+        const userId = req.body.answeredBy
+        const questionId = req.body.questionId
         const tokenId = req.userId
+        const requestBody = req.body
 
         if (!isValidRequestBody(requestBody)) {
-            return res.status(400).send({ status: false, Message: "Invalid request params, please provide answer details" })
+            return res.status(400).send({ status: false, message: "Please provide data for successful Answer create for Particular Question" });
         }
-
-        //extract params
-        let { answeredBy, text, questionId } = requestBody
-
-        if (!isValid(answeredBy)) {
-            return res.status(400).send({ status: false, Message: "Please provide text" })
+        if (!isValid(userId)) {
+            return res.status(400).send({ status: false, message: "Please provide answeredBy or answeredBy field" });
         }
-
-        if (!isValidObjectId(answeredBy)) {
-            return res.status(400).send({ status: false, Message: "Please provide vaild answeredBy ID" })
+        if (!isValidObjectId(userId)) {
+            return res.status(400).send({ status: false, msg: "answeredBy UserId is not valid" })
         }
-
-        if (!isValid(text)) {
-            return res.status(400).send({ status: false, Message: "Please provide text" })
-        }
-
         if (!isValid(questionId)) {
-            return res.status(400).send({ status: false, Message: "Please provide questionId" })
+            return res.status(400).send({ status: false, message: "Please provide QuestionId or QuestionId field" });
         }
-
         if (!isValidObjectId(questionId)) {
-            return res.status(400).send({ status: false, Message: "Please provide vaild question ID" })
+            return res.status(404).send({ status: false, message: "questionId is not valid" })
         }
-
-        const question = await questionModel.findOne({ _id: questionId, isDeleted: false })
-        console.log(question)
-
-        if (!question) {
-            return res.status(404).send({ status: false, Message: "No question found with provided question id" })
+        if (!(userId == tokenId.toString())) {
+            return res.status(401).send({ status: false, message: `Unauthorized access! Owner info doesn't match` });
         }
-
-        if (!(tokenId == answeredBy)) {
-            return res.status(401).send({ status: false, Message: "Unauthorized, please provide your own answeredBy id" })
+        const user = await userModel.findById(userId)
+        if (!user) {
+            res.status(404).send({ status: false, msg: "AnswerBy User Id not found in DB" })
         }
-
-        const answerData = { answeredBy, text, questionId }
-        const newAns = await answerModel.create(answerData)
-        return res.status(201).send({ status: true, Message: "Answer created successfully", data: newAns })
-
-    } catch (error) {
-        return res.status(500).send({ status: false, message: error.message });
+        const questiondetail = await questionModel.findOne({ _id: questionId, isDeleted: false })
+        if (!questiondetail) {
+            return res.status(400).send({ status: false, message: "question don't exist or it's deleted" })
+        }
+        let { text } = requestBody
+        if (!isValid(text)) {
+            return res.status(400).send({ status: false, message: "Please provide text detail to create answer " });
+        }
+        let userScoredata = await questionModel.findOne({ _id: questionId })
+        if (!(req.body.answeredBy == userScoredata.askedBy)) {
+            let increaseScore = await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: +200 } })
+            const data = { answeredBy: userId, text, questionId }
+            const answerData = await answerModel.create(data);
+            let totalData = { answerData, increaseScore }
+            return res.status(200).send({ status: false, message: "User Credit Score updated ", data: totalData });
+        } else {
+            return res.status(400).send({ status: true, message: 'Sorry , You cannot Answer Your Own Question' });
+        }
+    } catch (err) {
+        console.log(err)
+        return res.status(500).send({ status: false, msg: err.message });
     }
 }
 
@@ -203,4 +205,4 @@ const delAns = async function(req, res) {
     }
 }
 
-module.exports = { createAns, getAns, updateAns, delAns }
+module.exports = { createAnswer, getAns, updateAns, delAns }

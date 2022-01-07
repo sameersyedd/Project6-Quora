@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const questionModel = require('../models/questionModel.js')
 const answerModel = require('../models/answerModel.js')
+const userModel = require('../models/userModel.js')
 
 const isValidRequestBody = function(requestBody) {
     return Object.keys(requestBody).length > 0
@@ -45,7 +46,15 @@ const createQuestion = async function(req, res) {
 
             requestBody.tag = tag.split(',').map((x) => x.trim())
 
+            const user = await userModel.findById(userId)
+
+            if (user.creditScore < 100) {
+                return res.status(400).send({ status: false, Message: "You don't have enough credit score to post a question" })
+            }
+
             let question = await questionModel.create(requestBody)
+
+            await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: -100 } })
             return res.status(201).send({ status: false, Message: "Question created successfully", data: question })
         } else {
             return res.status(401).send({ status: false, Message: "Unauthorized access attemped! can't post question using this ID" })

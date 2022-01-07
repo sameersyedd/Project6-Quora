@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema({
         max: 15
     }, // encrypted password
 
+    creditScore: {
+        type: Number,
+        required: true,
+        trim: true
+    }
 
 }, { timestamps: true })
 

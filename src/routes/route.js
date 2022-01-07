@@ -21,7 +21,7 @@ router.put('/questions/:questionId', auth.userAuth, questionController.updateQue
 router.delete('/questions/:questionId', auth.userAuth, questionController.deleteQues)
 
 //answer routes
-router.post('/answer', auth.userAuth, answerController.createAns)
+router.post('/answer', auth.userAuth, answerController.createAnswer)
 router.get('/questions/:questionId/answer', answerController.getAns)
 router.put('/answer/:answerId', auth.userAuth, answerController.updateAns)
 router.delete('/answer/:answerId', auth.userAuth, answerController.delAns)
