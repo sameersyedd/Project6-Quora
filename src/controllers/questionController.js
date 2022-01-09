@@ -222,5 +222,3 @@ const deleteQues = async function(req, res) {
 
 
 module.exports = { createQuestion, getAllQuestion, getQuestionById, updateQues, deleteQues }
-
-module.exports = { createQuestion, getAllQuestion, getQuestionById, updateQues, deleteQues }
