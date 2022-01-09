@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const mongoose = require('mongoose')
 
 mongoose.connect("mongodb+srv://users-open-to-all:hiPassword123@cluster0.uh35t.mongodb.net/SM_Sameer?retryWrites=true&w=majority", { useNewUrlParser: true })
-    .then(() => console.log('mongodb running and connected'))
+    .then(() => console.log('mongodb ready to roll'))
     .catch(err => console.log(err))
 
 app.use('/', route);

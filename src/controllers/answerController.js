@@ -62,9 +62,9 @@ const createAnswer = async function(req, res) {
             const data = { answeredBy: userId, text, questionId }
             const answerData = await answerModel.create(data);
             let totalData = { answerData, increaseScore }
-            return res.status(200).send({ status: false, message: "User Credit Score updated ", data: totalData });
+            return res.status(200).send({ status: true, message: "Answer created, user's Credit Score updated ", data: totalData });
         } else {
-            return res.status(400).send({ status: true, message: 'Sorry , You cannot Answer Your Own Question' });
+            return res.status(400).send({ status: false, message: 'Sorry , You cannot Answer Your Own Question' });
         }
     } catch (err) {
         console.log(err)

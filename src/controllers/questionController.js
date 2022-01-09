@@ -55,7 +55,7 @@ const createQuestion = async function(req, res) {
             let question = await questionModel.create(requestBody)
 
             await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: -100 } })
-            return res.status(201).send({ status: false, Message: "Question created successfully", data: question })
+            return res.status(201).send({ status: true, Message: "Question created successfully", data: question })
         } else {
             return res.status(401).send({ status: false, Message: "Unauthorized access attemped! can't post question using this ID" })
         }
@@ -81,7 +81,6 @@ const getAllQuestion = async function(req, res) {
             filter['tag'] = { $all: tagsArr }
         }
 
-
         if (isValid(sort)) {
             if (sort == "ascending") {
                 var data = await questionModel.find(filter).lean().sort({ createdAt: 1 })
@@ -98,6 +97,10 @@ const getAllQuestion = async function(req, res) {
         for (let i = 0; i < data.length; i++) {
             let answer = await answerModel.find({ questionId: data[i]._id })
             data[i].answers = answer
+        }
+
+        if (data.length == 0) {
+            return res.status(404).send({ status: false, Message: "No questions found matching the tag" })
         }
 
         return res.status(200).send({ status: true, Message: "Question List", data: data })
@@ -184,6 +187,7 @@ const updateQues = async function(req, res) {
                 question['tag'] = [tag]
             }
         }
+
         const updatedData = await question.save()
         return res.status(200).send({ status: true, Message: "Data saved Sucessfully", data: updatedData })
     } catch (error) {
@@ -216,5 +220,7 @@ const deleteQues = async function(req, res) {
     }
 }
 
+
+module.exports = { createQuestion, getAllQuestion, getQuestionById, updateQues, deleteQues }
 
 module.exports = { createQuestion, getAllQuestion, getQuestionById, updateQues, deleteQues }
