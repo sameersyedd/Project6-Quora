@@ -3,6 +3,7 @@ const questionModel = require('../models/questionModel.js')
 const answerModel = require('../models/answerModel.js')
 const userModel = require('../models/userModel.js')
 
+
 const isValidRequestBody = function(requestBody) {
     return Object.keys(requestBody).length > 0
 }

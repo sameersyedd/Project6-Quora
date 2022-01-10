@@ -39,7 +39,7 @@ const createAnswer = async function(req, res) {
             return res.status(400).send({ status: false, message: "Please provide QuestionId or QuestionId field" });
         }
         if (!isValidObjectId(questionId)) {
-            return res.status(404).send({ status: false, message: "questionId is not valid" })
+            return res.status(400).send({ status: false, message: "questionId is not valid" })
         }
         if (!(userId == tokenId.toString())) {
             return res.status(401).send({ status: false, message: `Unauthorized access! Owner info doesn't match` });
@@ -50,7 +50,7 @@ const createAnswer = async function(req, res) {
         }
         const questiondetail = await questionModel.findOne({ _id: questionId, isDeleted: false })
         if (!questiondetail) {
-            return res.status(400).send({ status: false, message: "question don't exist or it's deleted" })
+            return res.status(404).send({ status: false, message: "question don't exist or it's deleted" })
         }
         let { text } = requestBody
         if (!isValid(text)) {
@@ -58,11 +58,11 @@ const createAnswer = async function(req, res) {
         }
         let userScoredata = await questionModel.findOne({ _id: questionId })
         if (!(req.body.answeredBy == userScoredata.askedBy)) {
-            let increaseScore = await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: +200 } })
+            let increaseScore = await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: +200 } }, { new: true })
             const data = { answeredBy: userId, text, questionId }
             const answerData = await answerModel.create(data);
             let totalData = { answerData, increaseScore }
-            return res.status(200).send({ status: true, message: "Answer created, user's Credit Score updated ", data: totalData });
+            return res.status(201).send({ status: true, message: "Answer created, user's Credit Score updated ", data: totalData });
         } else {
             return res.status(400).send({ status: false, message: 'Sorry , You cannot Answer Your Own Question' });
         }
@@ -119,7 +119,7 @@ const updateAns = async function(req, res) {
         }
 
         if (!isValidRequestBody(requestBody)) {
-            return res.status(200).send({ status: false, Message: "No data updated, details are changed" })
+            return res.status(200).send({ status: true, Message: "No data updated, details are changed" })
         }
 
         const answer = await answerModel.findOne({ _id: ansId }, { isDeleted: false })
