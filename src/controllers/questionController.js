@@ -130,7 +130,7 @@ const getQuestionById = async function(req, res) {
         const answer = await answerModel.find({ questionId: qId, isDeleted: false })
 
         if (answer.length === 0) {
-            var ansArr = {
+            let ansArr = {
                 description: question.description,
                 tag: question.tag,
                 askedBy: question.askedBy,
@@ -139,7 +139,7 @@ const getQuestionById = async function(req, res) {
             return res.status(200).send({ status: true, data: ansArr })
         }
 
-        var ansArr = {
+        let ansArr = {
             description: question.description,
             tag: question.tag,
             askedBy: question.askedBy,
