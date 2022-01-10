@@ -58,7 +58,7 @@ const createAnswer = async function(req, res) {
         }
         let userScoredata = await questionModel.findOne({ _id: questionId })
         if (!(req.body.answeredBy == userScoredata.askedBy)) {
-            let increaseScore = await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: +200 } }, { new: true })
+            let increaseScore = await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: +200 } }, { new: true }).select({ creditScore: 1, _id: 0 })
             const data = { answeredBy: userId, text, questionId }
             const answerData = await answerModel.create(data);
             let totalData = { answerData, increaseScore }
