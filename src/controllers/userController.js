@@ -76,11 +76,9 @@ const registerUser = async function(req, res) {
         if (!isValid(creditScore)) {
             return res.status(400).send({ status: false, message: "Please provide CreditScore" });;
         }
-        if (isNaN(creditScore)) {
-            return res.status(400).send({ status: false, message: "You can't use special characters or alphabets in CreditScore" });
-        }
-        if (creditScore < 0) {
-            return res.status(400).send({ status: false, message: "You can't give negative values in CreditScore" });
+
+        if (!(creditScore == "500")) {
+            return res.status(400).send({ status: false, Message: "initial credit score can only be 500" })
         }
 
         const encryptedPass = await bcrypt.hash(password, 10)
