@@ -190,7 +190,7 @@ const updateQues = async function(req, res) {
         }
 
         const updatedData = await question.save()
-        return res.status(200).send({ status: true, Message: "Data saved Sucessfully", data: updatedData })
+        return res.status(200).send({ status: true, Message: "Question updated Sucessfully", data: updatedData })
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message });
     }
