@@ -103,23 +103,22 @@ const loginUser = async function(req, res) {
         const { email, password } = requestBody;
 
         if (!isValid(email)) {
-            res.status(400).send({ status: false, message: `Email is required` })
-            return
+            return res.status(400).send({ status: false, message: `Email is required` })
+
         }
 
         if (!((emailRegex).test(email))) {
-            res.status(400).send({ status: false, message: `Email should be a valid email address` })
-            return
+            return res.status(400).send({ status: false, message: `Email should be a valid email address` })
         }
 
         if (!isValid(password)) {
-            res.status(400).send({ status: false, message: `Password is required` })
-            return
+            return res.status(400).send({ status: false, message: `Password is required` })
+
         }
 
         const user = await userModel.findOne({ email });
         if (!user) {
-            res.status(404).send({ status: false, Message: `No user found with ${email}` })
+            return res.status(404).send({ status: false, Message: `No user found with ${email}` })
         }
 
         const matchPassword = await bcrypt.compareSync(password, user.password) //matching original and encrypted
@@ -134,9 +133,9 @@ const loginUser = async function(req, res) {
             exp: Math.floor(Date.now() / 1000) + 60 * 60 * 12
         }, 'sms')
 
-        res.status(200).send({ status: true, message: `user login successfull`, data: { token, userId: user._id } });
+        return res.status(200).send({ status: true, message: `user login successfull`, data: { token, userId: user._id } });
     } catch (error) {
-        res.status(500).send({ status: false, message: error.message });
+        return res.status(500).send({ status: false, message: error.message });
     }
 }
 

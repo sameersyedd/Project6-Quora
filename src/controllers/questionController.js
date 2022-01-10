@@ -184,9 +184,6 @@ const updateQues = async function(req, res) {
             if (Array.isArray(tag)) {
                 question['tag'] = [...tag]
             }
-            if (Object.prototype.toString.call(tag) === "[object String]") {
-                question['tag'] = [tag]
-            }
         }
 
         const updatedData = await question.save()
@@ -211,7 +208,7 @@ const deleteQues = async function(req, res) {
         }
         // console.log(question.askedBy.toString())
         if (!(tokenId == question.askedBy.toString())) {
-            return res.status(401).send({ status: false, msg: "You are  not authorized to update this question" })
+            return res.status(401).send({ status: false, msg: "You are  not authorized to delete this question" })
         }
         const deletedData = await questionModel.findOneAndUpdate({ _id: qId }, { isDeleted: true, deletedAt: new Date() }, { new: true })
         return res.status(200).send({ status: true, msg: "Question Deleted", data: deletedData })
