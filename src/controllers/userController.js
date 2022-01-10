@@ -150,7 +150,7 @@ const getUser = async function(req, res) {
         const tokenId = req.userId
 
         if (!isValidObjectId(userId)) {
-            res.status(400).send({ status: false, Message: "Please provide valid user id" })
+            return res.status(400).send({ status: false, Message: "Please provide valid user id" })
         }
         if (userId == tokenId) {
             const user = await userModel.findOne({ _id: userId })
